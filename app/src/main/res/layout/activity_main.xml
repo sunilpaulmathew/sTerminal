@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="top|center_vertical"
+            android:orientation="horizontal"
+            android:background="@color/colorBlack" >
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="start"
+                android:gravity="center_vertical"
+                android:text="@string/app_name"
+                android:padding="10dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="?android:attr/colorAccent" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/colorBlack"
+            android:gravity="center_vertical" >
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/shell_command_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_gravity="start|center"
+                android:textStyle="bold"
+                android:textColor="?android:attr/colorAccent"
+                android:textSize="18sp" />
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/shell_command"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="75dp"
+                android:layout_marginEnd="100dp"
+                android:cursorVisible="true"
+                android:gravity="center_vertical"
+                android:layout_gravity="start|center"
+                android:textColor="@color/colorWhite"
+                android:inputType="textMultiLine|textImeMultiLine|textNoSuggestions"
+                android:padding="10dp"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="horizontal" >
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/enter_button"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:src="@drawable/ic_enter"
+                    android:background="?android:attr/colorAccent"
+                    android:tint="?android:attr/colorBackground" />
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/up_button"
+                    android:layout_width="40dp"
+                    android:layout_height="30dp"
+                    android:layout_margin="5dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:src="@drawable/ic_arrow_up"
+                    android:background="?android:attr/colorAccent"
+                    android:tint="?android:attr/colorBackground" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/colorBackground"
+            android:scrollbars="vertical" >
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/shell_output"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:background="@null"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:textSize="15sp" />
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/progress_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@null"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:gravity="center" >
+
+        <ProgressBar
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
