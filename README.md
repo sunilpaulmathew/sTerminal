@@ -2,7 +2,7 @@
 
 ![Simple Terminal](app/src/main/res/mipmap-xxxhdpi/ic_launcher.png?raw=true)
 
-[![](https://img.shields.io/badge/Simple%20Terminal-v0.1-green)](https://github.com/sunilpaulmathew/SimpleTerminal/raw/main/release/com.sunilpaulmathew.terminal.apk)
+[![](https://img.shields.io/badge/Simple%20Terminal-v0.2-green)](https://github.com/sunilpaulmathew/SimpleTerminal/raw/main/release/com.sunilpaulmathew.terminal.apk)
 ![](https://img.shields.io/github/languages/top/sunilpaulmathew/SimpleTerminal)
 ![](https://img.shields.io/github/contributors/sunilpaulmathew/SimpleTerminal)
 ![](https://img.shields.io/github/license/sunilpaulmathew/SimpleTerminal)
