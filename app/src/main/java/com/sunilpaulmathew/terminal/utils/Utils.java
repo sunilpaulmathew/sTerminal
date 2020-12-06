@@ -3,18 +3,16 @@ package com.sunilpaulmathew.terminal.utils;
 import android.content.Context;
 import android.content.res.Configuration;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import com.sunilpaulmathew.terminal.BuildConfig;
 import com.topjohnwu.superuser.Shell;
-import com.topjohnwu.superuser.ShellUtils;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on September 25, 2020
@@ -27,46 +25,36 @@ public class Utils {
         Shell.Config.setTimeout(10);
     }
 
-    public static String runCommand(String command) {
+    public static void runCommand(String command, List<String> output) {
         try {
             Process process = Runtime.getRuntime().exec(command);
             BufferedReader mInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
             BufferedReader mError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            StringBuilder sb = new StringBuilder();
             String line;
             while ((line = mInput.readLine()) != null) {
-                sb.append(line).append("\n");
+                output.add(line);
             }
             while ((line = mError.readLine()) != null) {
-                sb.append(line).append("\n");
+                output.add(line);
             }
-            return sb.toString();
         } catch (Exception ignored) {
-            return "";
         }
     }
 
-    @NonNull
-    public static String runRootCommand(String command) {
-        StringBuilder sb = new StringBuilder();
-        List<String> outputs = new ArrayList<>();
-        List<String> stderr = new ArrayList<>();
-        try {
-            Shell.su(command).to(outputs, stderr).exec();
-            outputs.addAll(stderr);
-            if (ShellUtils.isValidOutput(outputs)) {
-                for (String output : outputs) {
-                    sb.append(output).append("\n");
-                }
-            }
-            return removeSuffix(sb.toString()).trim();
-        } catch (Exception e) {
-            return "";
-        }
+    public static void runRootCommand(String command, List<String> output) {
+        Shell.su(command).to(output, output).exec();
     }
 
     public static boolean rootAccess() {
         return Shell.rootAccess();
+    }
+
+    public static void closeSU() {
+        try {
+            Objects.requireNonNull(Shell.getCachedShell()).close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static boolean isDarkTheme(Context context) {
@@ -82,11 +70,16 @@ public class Utils {
         }
     }
 
-    private static String removeSuffix(@Nullable String s) {
-        if (s != null && s.endsWith("\n")) {
-            return s.substring(0, s.length() - "\n".length());
+    public static String getOutput(List<String> output) {
+        List<String> mData = new ArrayList<>();
+        for (String line : output.toString().substring(1, output.toString().length() - 1).replace(
+                ", ","\n").replace("ui_print","").split("\\r?\\n")) {
+            if (!line.startsWith("progress")) {
+                mData.add(line);
+            }
         }
-        return s;
+        return mData.toString().substring(1, mData.toString().length() - 1).replace(", ","\n")
+                .replaceAll("(?m)^[ \t]*\r?\n", "");
     }
 
 }
