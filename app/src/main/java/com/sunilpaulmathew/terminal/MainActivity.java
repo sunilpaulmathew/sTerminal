@@ -1,7 +1,6 @@
 package com.sunilpaulmathew.terminal;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +21,7 @@ import com.google.android.material.textview.MaterialTextView;
 import com.sunilpaulmathew.terminal.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
@@ -38,10 +38,9 @@ public class MainActivity extends AppCompatActivity {
     private CharSequence mHistory = null;
     private Handler mHandler = new Handler();
     private int i;
-    private List<String> mResult = null, PWD = null, whoAmI = null;
+    private List<String> mLastCommand = null, mResult = null, PWD = null, whoAmI = null;
     private NestedScrollView mScrollView;
     private String[] mCommand;
-    private StringBuilder mLastCommand;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -68,25 +67,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().contains("\n")) {
-                    runShellCommand(MainActivity.this);
+                    runShellCommand();
                 }
             }
         });
-        mEnter.setOnClickListener(v -> runShellCommand(this));
+        mEnter.setOnClickListener(v -> runShellCommand());
         mUpButtom.setOnClickListener(v -> {
-            String[] lines = mLastCommand.toString().split(",");
+            List<String> mRecentCommands = new ArrayList<>();
+            for (i = 0; i < mLastCommand.size(); i++) {
+                mRecentCommands.add(mLastCommand.get(i));
+            }
+            Collections.reverse(mRecentCommands);
             PopupMenu popupMenu = new PopupMenu(this, mShellCommand);
             Menu menu = popupMenu.getMenu();
-            if (mLastCommand.toString().isEmpty()) {
+            if (mLastCommand.size() == 0) {
                 return;
             }
-            for (i = 0; i < lines.length; i++) {
-                menu.add(Menu.NONE, i, Menu.NONE, lines[i]);
+            for (i = 0; i < mRecentCommands.size(); i++) {
+                menu.add(Menu.NONE, i, Menu.NONE, mRecentCommands.get(i));
             }
             popupMenu.setOnMenuItemClickListener(item -> {
-                for (i = 0; i < lines.length; i++) {
+                for (i = 0; i < mRecentCommands.size(); i++) {
                     if (item.getItemId() == i) {
-                        mShellCommand.setText(lines[i]);
+                        mShellCommand.setText(mRecentCommands.get(i));
                     }
                 }
                 return false;
@@ -124,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint({"SetTextI18n", "StaticFieldLeak"})
-    private void runShellCommand(Context context) {
+    private void runShellCommand() {
         if (mShellCommand.getText() == null || mShellCommand.getText().toString().isEmpty()) {
             return;
         }
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
                 sb.append(" ").append(s);
         }
         mCommand = new String[] {sb.toString().replaceFirst(" ", "")};
-        mLastCommand.append(mCommand[0]).append(",");
+        mLastCommand.add(mCommand[0]);
         if (mShellCommand.getText() != null && !mCommand[0].isEmpty()) {
             if (mCommand[0].equals("clear")) {
                 clearAll();
@@ -253,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         mShellCommand.requestFocus();
-        mLastCommand = new StringBuilder();
+        mLastCommand = new ArrayList<>();
         whoAmI = new ArrayList<>();
         PWD = new ArrayList<>();
         Utils.runCommand("whoami", whoAmI);
