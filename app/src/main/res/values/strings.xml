@@ -1,13 +1,19 @@
 <resources>
     <string name="app_name" translatable="false">Simple Terminal</string>
 
+    <string name="about">About</string>
+    <string name="app_info">The simplest terminal emulator for android!</string>
     <string name="cancel">Cancel</string>
+    <string name="changelog">Change-logs</string>
+    <string name="developed_by">Developed By</string>
     <string name="dismiss">Dismiss</string>
-    <string name="enter_command_hint">Enter Command Here!</string>
     <string name="exit">Exit</string>
     <string name="exit_confirmation">Exit Simple Terminal?</string>
+    <string name="licence">Licence</string>
+    <string name="manual">Manual</string>
     <string name="press_back">Press back again to exit</string>
     <string name="root_status_available">Congrats! Root Access is already available for this app!</string>
     <string name="root_status_unavailable">Unfortunately, Root Access is either unavailable on your device or denied to this app. Please check with you\'re root management application to know more!</string>
-    <string name="stop_command_question">Stop executing %s &amp; exit Simple Terminal?</string>
+    <string name="source_code">Source Code</string>
+    <string name="stop_command_question">Stop executing \'%s\' &amp; exit Simple Terminal?</string>
 </resources>

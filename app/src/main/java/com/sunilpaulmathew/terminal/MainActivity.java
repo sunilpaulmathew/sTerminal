@@ -1,6 +1,7 @@
 package com.sunilpaulmathew.terminal;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,15 +17,16 @@ import androidx.appcompat.widget.PopupMenu;
 import androidx.core.widget.NestedScrollView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textview.MaterialTextView;
+import com.sunilpaulmathew.terminal.activities.AboutActivity;
+import com.sunilpaulmathew.terminal.activities.LicenceActivity;
+import com.sunilpaulmathew.terminal.activities.ManualActivity;
 import com.sunilpaulmathew.terminal.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.Objects;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on September 25, 2020
@@ -33,6 +35,7 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
     private AppCompatEditText mShellCommand;
+    private AppCompatImageButton mUpButtom;
     private MaterialTextView mShellCommandTitle, mShellOutput;
     private boolean mExit, mSU = false, mRunning = false;
     private CharSequence mHistory = null;
@@ -40,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private int i;
     private List<String> mLastCommand = null, mResult = null, PWD = null, whoAmI = null;
     private NestedScrollView mScrollView;
-    private String[] mCommand;
+    private String mCommand;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -50,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AppCompatImageButton mEnter = findViewById(R.id.enter_button);
-        AppCompatImageButton mUpButtom = findViewById(R.id.up_button);
+        AppCompatImageButton mMenu = findViewById(R.id.menu_button);
+        mUpButtom = findViewById(R.id.up_button);
         mShellCommand = findViewById(R.id.shell_command);
         mShellCommandTitle = findViewById(R.id.shell_command_title);
         mShellOutput = findViewById(R.id.shell_output);
@@ -68,10 +71,41 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (s.toString().contains("\n")) {
                     runShellCommand();
+                    mShellOutput.setVisibility(View.VISIBLE);
                 }
             }
         });
-        mEnter.setOnClickListener(v -> runShellCommand());
+
+        mMenu.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(this, mMenu);
+            Menu menu = popupMenu.getMenu();
+            menu.add(Menu.NONE, 0, Menu.NONE, R.string.manual);
+            menu.add(Menu.NONE, 1, Menu.NONE, R.string.source_code);
+            menu.add(Menu.NONE, 2, Menu.NONE, R.string.licence);
+            menu.add(Menu.NONE, 3, Menu.NONE, R.string.about);
+            popupMenu.setOnMenuItemClickListener(item -> {
+                switch (item.getItemId()) {
+                    case 0:
+                        Intent manual = new Intent(this, ManualActivity.class);
+                        startActivity(manual);
+                        break;
+                    case 1:
+                        Utils.launchUrl("https://github.com/sunilpaulmathew/SimpleTerminal", this);
+                        break;
+                    case 2:
+                        Intent licence = new Intent(this, LicenceActivity.class);
+                        startActivity(licence);
+                        break;
+                    case 3:
+                        Intent about = new Intent(this, AboutActivity.class);
+                        startActivity(about);
+                        break;
+                }
+                return false;
+            });
+            popupMenu.show();
+        });
+
         mUpButtom.setOnClickListener(v -> {
             List<String> mRecentCommands = new ArrayList<>();
             for (i = 0; i < mLastCommand.size(); i++) {
@@ -131,20 +165,20 @@ public class MainActivity extends AppCompatActivity {
         if (mShellCommand.getText() == null || mShellCommand.getText().toString().isEmpty()) {
             return;
         }
-        String[] array = Objects.requireNonNull(mShellCommand.getText()).toString().trim().split("\\s+");
+        String[] array = mShellCommand.getText().toString().trim().split("\\s+");
         StringBuilder sb = new StringBuilder();
         for (String s : array) {
             if (s != null && !s.isEmpty())
                 sb.append(" ").append(s);
         }
-        mCommand = new String[] {sb.toString().replaceFirst(" ", "")};
-        mLastCommand.add(mCommand[0]);
-        if (mShellCommand.getText() != null && !mCommand[0].isEmpty()) {
-            if (mCommand[0].equals("clear")) {
+        mCommand = sb.toString().replaceFirst(" ", "");
+        mLastCommand.add(mCommand);
+        if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
+            if (mCommand.equals("clear")) {
                 clearAll();
                 return;
             }
-            if (mCommand[0].equals("exit")) {
+            if (mCommand.equals("exit")) {
                 if (mSU) {
                     mSU = false;
                     whoAmI = new ArrayList<>();
@@ -164,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return;
             }
-            if (mCommand[0].equals("su") || mCommand[0].startsWith("su ")) {
+            if (mCommand.equals("su") || mCommand.startsWith("su ")) {
                 if (mSU && Utils.rootAccess()) {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(this)
@@ -199,22 +233,22 @@ public class MainActivity extends AppCompatActivity {
                 mHistory = mShellOutput.getText();
                 mResult = new ArrayList<>();
                 PWD = new ArrayList<>();
-                mScrollView.fullScroll(NestedScrollView.FOCUS_UP);
+                mShellCommand.setText(null);
             }
             @SuppressLint("WrongThread")
             @Override
             protected Void doInBackground(Void... voids) {
-                if (mShellCommand.getText() != null && !mCommand[0].isEmpty()) {
-                    mResult.add(whoAmI + ": " + mCommand[0]);
+                if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
+                    mResult.add(whoAmI + ": " + mCommand);
                     if (mSU) {
-                        Utils.runRootCommand(mCommand[0], mResult);
+                        Utils.runRootCommand(mCommand, mResult);
                         Utils.runRootCommand("pwd", PWD);
                     } else {
-                        Utils.runCommand(mCommand[0], mResult);
+                        Utils.runCommand(mCommand, mResult);
                         Utils.runCommand("pwd", PWD);
                     }
-                    if (Utils.getOutput(mResult).equals(whoAmI + ": " + mCommand[0] + "\n")) {
-                        mResult.add(whoAmI + ": " + mCommand[0] + "\n" + mCommand[0]);
+                    if (Utils.getOutput(mResult).equals(whoAmI + ": " + mCommand + "\n")) {
+                        mResult.add(whoAmI + ": " + mCommand + "\n" + mCommand);
                     }
                 }
                 return null;
@@ -222,21 +256,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                mShellCommand.setText(null);
                 mShellCommand.requestFocus();
-                mShellOutput.setText(Utils.getOutput(mResult) + "\n\n" + mHistory);
+                if (mHistory != null && !mHistory.toString().isEmpty()) {
+                    mShellOutput.setText(mHistory + "\n\n" + Utils.getOutput(mResult));
+                } else {
+                    mShellOutput.setText(Utils.getOutput(mResult));
+                }
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 mHistory = null;
                 mRunning = false;
                 mShellOutput.setVisibility(View.VISIBLE);
+                if (mLastCommand.size() > 0) {
+                    mUpButtom.setVisibility(View.VISIBLE);
+                }
             }
         }.execute();
-    }
-
-    private void showSnackbar(String message) {
-        Snackbar snackbar = Snackbar.make(mShellCommand, message, Snackbar.LENGTH_LONG);
-        snackbar.setAction(R.string.dismiss, v -> snackbar.dismiss());
-        snackbar.show();
     }
 
     private void close() {
@@ -268,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (mRunning) {
             new MaterialAlertDialogBuilder(this)
-                    .setMessage(getString(R.string.stop_command_question, mCommand[0]))
+                    .setMessage(getString(R.string.stop_command_question, mCommand))
                     .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
                     })
                     .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
@@ -280,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             mExit = false;
             super.onBackPressed();
         } else {
-            showSnackbar(getString(R.string.press_back));
+            Utils.showSnackbar(findViewById(android.R.id.content), getString(R.string.press_back));
             mExit = true;
             mHandler.postDelayed(() -> mExit = false, 2000);
         }
