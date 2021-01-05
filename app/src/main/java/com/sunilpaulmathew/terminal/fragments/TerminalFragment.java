@@ -227,7 +227,6 @@ public class TerminalFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
-                mShellCommand.requestFocus();
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 Utils.mRunning = false;
                 if (mLastCommand.size() > 0) {

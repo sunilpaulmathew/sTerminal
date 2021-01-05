@@ -2,6 +2,7 @@
 <LinearLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <LinearLayout
@@ -24,6 +25,16 @@
             android:textColor="@color/ColorBlue" />
 
         <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/add_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_gravity="end|center_vertical"
+            android:src="@drawable/ic_add"
+            android:background="@null"
+            android:tint="@color/ColorBlue" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/menu_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -34,8 +45,20 @@
             android:tint="@color/ColorBlue" />
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/fragment_container"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_Layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorBlack"
+        app:tabSelectedTextColor="?attr/colorAccent"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:visibility="gone"
+        app:tabMode="scrollable"
+        app:tabGravity="center" />
+
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 </LinearLayout>

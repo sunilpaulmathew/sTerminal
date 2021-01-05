@@ -16,4 +16,5 @@
     <string name="root_status_unavailable">Unfortunately, Root Access is either unavailable on your device or denied to this app. Please check with you\'re root management application to know more!</string>
     <string name="source_code">Source Code</string>
     <string name="stop_command_question">Stop executing \'%s\' &amp; exit Simple Terminal?</string>
+    <string name="tab_count">Tab %s</string>
 </resources>

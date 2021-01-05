@@ -4,15 +4,19 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Menu;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.tabs.TabLayout;
 import com.sunilpaulmathew.terminal.activities.AboutActivity;
 import com.sunilpaulmathew.terminal.activities.LicenceActivity;
 import com.sunilpaulmathew.terminal.activities.ManualActivity;
+import com.sunilpaulmathew.terminal.adapters.PagerAdapter;
 import com.sunilpaulmathew.terminal.fragments.TerminalFragment;
 import com.sunilpaulmathew.terminal.utils.Utils;
 
@@ -24,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean mExit;
     private Handler mHandler = new Handler();
+    private int i = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         AppCompatImageButton mMenu = findViewById(R.id.menu_button);
+        AppCompatImageButton mAdd = findViewById(R.id.add_button);
+        TabLayout mTabLayout = findViewById(R.id.tab_Layout);
+        ViewPager mViewPager = findViewById(R.id.view_pager);
 
         mMenu.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(this, mMenu);
@@ -64,13 +72,19 @@ public class MainActivity extends AppCompatActivity {
             popupMenu.show();
         });
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
-                new TerminalFragment()).commit();
-    }
+        PagerAdapter adapter = new PagerAdapter(getSupportFragmentManager());
+        adapter.AddFragment(new TerminalFragment(), getString(R.string.tab_count, String.valueOf(i)));
+        mViewPager.setAdapter(adapter);
+        mTabLayout.setupWithViewPager(mViewPager);
 
-    private void close() {
-        Utils.closeSU();
-        super.onBackPressed();
+        mAdd.setOnClickListener(v -> {
+            i = ++i;
+            if (i > 1 && mTabLayout.getVisibility() == View.GONE) {
+                mTabLayout.setVisibility(View.VISIBLE);
+            }
+            adapter.AddFragment(new TerminalFragment(), getString(R.string.tab_count, String.valueOf(i)));
+            mViewPager.setAdapter(adapter);
+        });
     }
 
     @Override
@@ -81,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
                     })
                     .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
-                        close();
+                        Utils.closeSU();
+                        super.onBackPressed();
                     }).show();
             return;
         }
