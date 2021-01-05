@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
                     })
                     .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
-                        Utils.closeSU();
+                        Utils.closeShell();
                         super.onBackPressed();
                     }).show();
             return;

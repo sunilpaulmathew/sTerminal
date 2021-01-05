@@ -28,8 +28,9 @@ import java.util.Objects;
 
 public class Utils {
 
-    public static boolean mRunning = false;
+    public static boolean mRunning = false, mSU = false;
     public static String mCommand;
+    private static Process mProcess;
 
     static {
         Shell.Config.verboseLogging(BuildConfig.DEBUG);
@@ -38,9 +39,9 @@ public class Utils {
 
     public static void runCommand(String command, List<String> output) {
         try {
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedReader mInput = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader mError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            mProcess = Runtime.getRuntime().exec(command);
+            BufferedReader mInput = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
+            BufferedReader mError = new BufferedReader(new InputStreamReader(mProcess.getErrorStream()));
             String line;
             while ((line = mInput.readLine()) != null) {
                 output.add(line);
@@ -48,6 +49,7 @@ public class Utils {
             while ((line = mError.readLine()) != null) {
                 output.add(line);
             }
+            mProcess.waitFor();
         } catch (Exception e) {
             output.add(e.getMessage());
         }
@@ -61,10 +63,14 @@ public class Utils {
         return Shell.rootAccess();
     }
 
-    public static void closeSU() {
-        try {
-            Objects.requireNonNull(Shell.getCachedShell()).close();
-        } catch (Exception ignored) {
+    public static void closeShell() {
+        if (Utils.mSU) {
+            try {
+                Objects.requireNonNull(Shell.getCachedShell()).close();
+            } catch (Exception ignored) {
+            }
+        } else {
+            mProcess.destroy();
         }
     }
 

@@ -39,9 +39,8 @@ public class TerminalFragment extends Fragment {
     private AppCompatEditText mShellCommand;
     private AppCompatImageButton mUpButtom;
     private MaterialTextView mShellCommandTitle;
-    private boolean mSU = false;
     private int i;
-    private List<String> mHistory = new ArrayList<>(), mLastCommand = null, mResult = null, PWD = null, whoAmI = null;
+    private List<String> mHistory = new ArrayList<>(), mLastCommand = null, PWD = null, mResult, whoAmI = null;
     private NestedScrollView mScrollView;
     private RecyclerView mRecyclerView;
 
@@ -119,6 +118,9 @@ public class TerminalFragment extends Fragment {
                         activity.runOnUiThread(() -> {
                             if (Utils.mRunning) {
                                 mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
+                                if (mResult.isEmpty()) {
+                                    Utils.closeShell();
+                                }
                             }
                             try {
                                 RecycleViewAdapter mRecycleViewAdapter = new RecycleViewAdapter(getData());
@@ -151,8 +153,8 @@ public class TerminalFragment extends Fragment {
                 return;
             }
             if (Utils.mCommand.equals("exit")) {
-                if (mSU) {
-                    mSU = false;
+                if (Utils.mSU) {
+                    Utils.mSU = false;
                     whoAmI = new ArrayList<>();
                     Utils.runCommand("whoami", whoAmI);
                     mShellCommand.setText(null);
@@ -171,7 +173,7 @@ public class TerminalFragment extends Fragment {
                 return;
             }
             if (Utils.mCommand.equals("su") || Utils.mCommand.startsWith("su ")) {
-                if (mSU && Utils.rootAccess()) {
+                if (Utils.mSU && Utils.rootAccess()) {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
                             .setMessage(R.string.root_status_available)
@@ -180,7 +182,7 @@ public class TerminalFragment extends Fragment {
                             .show();
                     return;
                 } else if (Utils.rootAccess()) {
-                    mSU = true;
+                    Utils.mSU = true;
                     mShellCommand.setText(null);
                     whoAmI = new ArrayList<>();
                     Utils.runRootCommand("whoami", whoAmI);
@@ -214,7 +216,7 @@ public class TerminalFragment extends Fragment {
             protected Void doInBackground(Void... voids) {
                 if (mShellCommand.getText() != null && !Utils.mCommand.isEmpty()) {
                     mResult.add(whoAmI + ": " + Utils.mCommand);
-                    if (mSU) {
+                    if (Utils.mSU) {
                         Utils.runRootCommand(Utils.mCommand, mResult);
                         Utils.runRootCommand("pwd", PWD);
                     } else {
