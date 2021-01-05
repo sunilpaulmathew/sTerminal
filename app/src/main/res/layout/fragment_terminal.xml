@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical">
+    android:orientation="vertical" >
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"
@@ -17,17 +17,10 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/shell_output"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginTop="10dp"
-                android:visibility="gone"
-                android:textStyle="bold"
-                android:textSize="15sp" />
+                android:layout_height="wrap_content" />
 
             <FrameLayout
                 android:layout_width="match_parent"
