@@ -28,6 +28,9 @@ import java.util.Objects;
 
 public class Utils {
 
+    public static boolean mRunning = false;
+    public static String mCommand;
+
     static {
         Shell.Config.verboseLogging(BuildConfig.DEBUG);
         Shell.Config.setTimeout(10);
@@ -45,7 +48,8 @@ public class Utils {
             while ((line = mError.readLine()) != null) {
                 output.add(line);
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            output.add(e.getMessage());
         }
     }
 
@@ -60,8 +64,7 @@ public class Utils {
     public static void closeSU() {
         try {
             Objects.requireNonNull(Shell.getCachedShell()).close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 

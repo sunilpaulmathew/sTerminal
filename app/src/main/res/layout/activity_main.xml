@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:layout_width="match_parent"
+<LinearLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <LinearLayout
@@ -36,80 +34,8 @@
             android:tint="@color/ColorBlue" />
     </LinearLayout>
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll_view"
+    <FrameLayout
+        android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/shell_output"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginTop="10dp"
-                android:visibility="gone"
-                android:textStyle="bold"
-                android:textSize="15sp" />
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center" >
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
-                    android:gravity="center" >
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/shell_command_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="start|center"
-                        android:textColor="@color/ColorBlue"
-                        android:textStyle="bold"
-                        android:gravity="start"
-                        android:textSize="17sp" />
-
-                    <androidx.appcompat.widget.AppCompatEditText
-                        android:id="@+id/shell_command"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="textMultiLine|textNoSuggestions"
-                        android:layout_gravity="start|center"
-                        android:textColor="@color/colorWhite"
-                        android:gravity="center_vertical"
-                        android:cursorVisible="true" />
-                </LinearLayout>
-
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|center_vertical"
-                    app:cardCornerRadius="5dp" >
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/up_button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end|center_vertical"
-                        android:tint="?android:attr/colorBackground"
-                        android:background="@color/ColorBlue"
-                        android:src="@drawable/ic_arrow_up"
-                        android:visibility="gone" />
-                </com.google.android.material.card.MaterialCardView>
-            </FrameLayout>
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+        android:layout_height="match_parent" />
 </LinearLayout>
