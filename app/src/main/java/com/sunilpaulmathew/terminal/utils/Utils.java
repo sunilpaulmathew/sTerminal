@@ -28,8 +28,6 @@ import java.util.Objects;
 
 public class Utils {
 
-    public static boolean mRunning = false, mSU = false;
-    public static String mCommand;
     private static Process mProcess;
 
     static {
@@ -63,15 +61,15 @@ public class Utils {
         return Shell.rootAccess();
     }
 
-    public static void closeShell() {
-        if (Utils.mSU) {
-            try {
-                Objects.requireNonNull(Shell.getCachedShell()).close();
-            } catch (Exception ignored) {
-            }
-        } else {
-            mProcess.destroy();
+    public static void closeSU() {
+        try {
+            Objects.requireNonNull(Shell.getCachedShell()).close();
+        } catch (Exception ignored) {
         }
+    }
+
+    public static void destroyProcess() {
+        mProcess.destroy();
     }
 
     private static boolean isDarkTheme(Context context) {

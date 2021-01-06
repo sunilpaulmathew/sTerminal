@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatImageButton;
@@ -38,11 +40,14 @@ public class TerminalFragment extends Fragment {
 
     private AppCompatEditText mShellCommand;
     private AppCompatImageButton mUpButtom;
+    private boolean mExit, mRunning = false, mSU = false;
+    private Handler mHandler = new Handler();
     private MaterialTextView mShellCommandTitle;
     private int i;
     private List<String> mHistory = new ArrayList<>(), mLastCommand = null, PWD = null, mResult, whoAmI = null;
     private NestedScrollView mScrollView;
     private RecyclerView mRecyclerView;
+    private String mCommand;
 
     @Nullable
     @Override
@@ -64,6 +69,7 @@ public class TerminalFragment extends Fragment {
             }
             @Override
             public void afterTextChanged(Editable s) {
+                if (mRunning) return;
                 if (s.toString().contains("\n")) {
                     runShellCommand(requireActivity());
                 }
@@ -97,6 +103,37 @@ public class TerminalFragment extends Fragment {
 
         refreshStatus(requireActivity());
 
+        requireActivity().getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (mRunning) {
+                    new MaterialAlertDialogBuilder(requireActivity())
+                            .setMessage(getString(R.string.stop_command_question, mCommand))
+                            .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
+                            })
+                            .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
+                                if (mSU) {
+                                    Utils.closeSU();
+                                } else {
+                                    Utils.destroyProcess();
+                                }
+                                this.remove();
+                                requireActivity().onBackPressed();
+                            }).show();
+                    return;
+                }
+                if (mExit) {
+                    mExit = false;
+                    this.remove();
+                    requireActivity().onBackPressed();
+                } else {
+                    Utils.showSnackbar(mRootView, getString(R.string.press_back));
+                    mExit = true;
+                    mHandler.postDelayed(() -> mExit = false, 2000);
+                }
+            }
+        });
+
         return mRootView;
     }
 
@@ -116,10 +153,14 @@ public class TerminalFragment extends Fragment {
                     while (!isInterrupted()) {
                         Thread.sleep(1000);
                         activity.runOnUiThread(() -> {
-                            if (Utils.mRunning) {
+                            if (mRunning) {
                                 mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
-                                if (mResult.isEmpty()) {
-                                    Utils.closeShell();
+                                if (!mCommand.startsWith("sleep") && mResult.isEmpty()) {
+                                    if (mSU) {
+                                        Utils.closeSU();
+                                    } else {
+                                        Utils.destroyProcess();
+                                    }
                                 }
                             }
                             try {
@@ -145,16 +186,16 @@ public class TerminalFragment extends Fragment {
             if (s != null && !s.isEmpty())
                 sb.append(" ").append(s);
         }
-        Utils.mCommand = sb.toString().replaceFirst(" ", "");
-        mLastCommand.add(Utils.mCommand);
-        if (mShellCommand.getText() != null && !Utils.mCommand.isEmpty()) {
-            if (Utils.mCommand.equals("clear")) {
+        mCommand = sb.toString().replaceFirst(" ", "");
+        mLastCommand.add(mCommand);
+        if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
+            if (mCommand.equals("clear")) {
                 clearAll();
                 return;
             }
-            if (Utils.mCommand.equals("exit")) {
-                if (Utils.mSU) {
-                    Utils.mSU = false;
+            if (mCommand.equals("exit")) {
+                if (mSU) {
+                    mSU = false;
                     whoAmI = new ArrayList<>();
                     Utils.runCommand("whoami", whoAmI);
                     mShellCommand.setText(null);
@@ -172,8 +213,8 @@ public class TerminalFragment extends Fragment {
                 }
                 return;
             }
-            if (Utils.mCommand.equals("su") || Utils.mCommand.startsWith("su ")) {
-                if (Utils.mSU && Utils.rootAccess()) {
+            if (mCommand.equals("su") || mCommand.startsWith("su ")) {
+                if (mSU && Utils.rootAccess()) {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
                             .setMessage(R.string.root_status_available)
@@ -182,7 +223,7 @@ public class TerminalFragment extends Fragment {
                             .show();
                     return;
                 } else if (Utils.rootAccess()) {
-                    Utils.mSU = true;
+                    mSU = true;
                     mShellCommand.setText(null);
                     whoAmI = new ArrayList<>();
                     Utils.runRootCommand("whoami", whoAmI);
@@ -203,7 +244,7 @@ public class TerminalFragment extends Fragment {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
-                Utils.mRunning = true;
+                mRunning = true;
                 try {
                     mHistory.addAll(mResult);
                 } catch (NullPointerException ignored) {}
@@ -214,13 +255,13 @@ public class TerminalFragment extends Fragment {
             @SuppressLint("WrongThread")
             @Override
             protected Void doInBackground(Void... voids) {
-                if (mShellCommand.getText() != null && !Utils.mCommand.isEmpty()) {
-                    mResult.add(whoAmI + ": " + Utils.mCommand);
-                    if (Utils.mSU) {
-                        Utils.runRootCommand(Utils.mCommand, mResult);
+                if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
+                    mResult.add(whoAmI + ": " + mCommand);
+                    if (mSU) {
+                        Utils.runRootCommand(mCommand, mResult);
                         Utils.runRootCommand("pwd", PWD);
                     } else {
-                        Utils.runCommand(Utils.mCommand, mResult);
+                        Utils.runCommand(mCommand, mResult);
                         Utils.runCommand("pwd", PWD);
                     }
                 }
@@ -230,7 +271,7 @@ public class TerminalFragment extends Fragment {
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
-                Utils.mRunning = false;
+                mRunning = false;
                 if (mLastCommand.size() > 0) {
                     mUpButtom.setVisibility(View.VISIBLE);
                 }

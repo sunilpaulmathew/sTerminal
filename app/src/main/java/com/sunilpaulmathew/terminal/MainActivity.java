@@ -2,7 +2,6 @@ package com.sunilpaulmathew.terminal;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.Menu;
 import android.view.View;
 
@@ -11,7 +10,6 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.viewpager.widget.ViewPager;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 import com.sunilpaulmathew.terminal.activities.AboutActivity;
 import com.sunilpaulmathew.terminal.activities.LicenceActivity;
@@ -26,8 +24,6 @@ import com.sunilpaulmathew.terminal.utils.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean mExit;
-    private Handler mHandler = new Handler();
     private int i = 1;
 
     @Override
@@ -85,29 +81,6 @@ public class MainActivity extends AppCompatActivity {
             adapter.AddFragment(new TerminalFragment(), getString(R.string.tab_count, String.valueOf(i)));
             mViewPager.setAdapter(adapter);
         });
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (Utils.mRunning) {
-            new MaterialAlertDialogBuilder(this)
-                    .setMessage(getString(R.string.stop_command_question, Utils.mCommand))
-                    .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
-                    })
-                    .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
-                        Utils.closeShell();
-                        super.onBackPressed();
-                    }).show();
-            return;
-        }
-        if (mExit) {
-            mExit = false;
-            super.onBackPressed();
-        } else {
-            Utils.showSnackbar(findViewById(android.R.id.content), getString(R.string.press_back));
-            mExit = true;
-            mHandler.postDelayed(() -> mExit = false, 2000);
-        }
     }
 
 }
