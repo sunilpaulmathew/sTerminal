@@ -2,6 +2,7 @@ package com.sunilpaulmathew.terminal.fragments;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -167,7 +168,7 @@ public class TerminalFragment extends Fragment {
                                 RecycleViewAdapter mRecycleViewAdapter = new RecycleViewAdapter(getData());
                                 mRecyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
                                 mRecyclerView.setAdapter(mRecycleViewAdapter);
-                            } catch (NullPointerException ignored) {}
+                            } catch (NullPointerException | IllegalStateException ignored) {}
                         });
                     }
                 } catch (InterruptedException ignored) {}
@@ -248,6 +249,7 @@ public class TerminalFragment extends Fragment {
                 try {
                     mHistory.addAll(mResult);
                 } catch (NullPointerException ignored) {}
+                requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
                 mResult = new ArrayList<>();
                 PWD = new ArrayList<>();
                 mShellCommand.setText(null);
@@ -272,6 +274,7 @@ public class TerminalFragment extends Fragment {
                 super.onPostExecute(aVoid);
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 mRunning = false;
+                requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 if (mLastCommand.size() > 0) {
                     mUpButtom.setVisibility(View.VISIBLE);
                 }
