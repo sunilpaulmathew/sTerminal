@@ -1,13 +1,13 @@
 # Simple Terminal
 
-![Simple Terminal](app/src/main/res/mipmap-xxxhdpi/ic_launcher.png?raw=true)
+![sTerminal](app/src/main/res/mipmap-xxxhdpi/ic_launcher.png?raw=true)
 
 [![](https://img.shields.io/badge/Simple%20Terminal-v0.3-green)](https://github.com/sunilpaulmathew/SimpleTerminal/raw/main/release/com.sunilpaulmathew.terminal.apk)
 ![](https://img.shields.io/github/languages/top/sunilpaulmathew/SimpleTerminal)
 ![](https://img.shields.io/github/contributors/sunilpaulmathew/SimpleTerminal)
 ![](https://img.shields.io/github/license/sunilpaulmathew/SimpleTerminal)
 
-### Simple Terminal is the simplest terminal emulator application available for android!
+### sTerminal is the simplest terminal emulator application available for android!
 
 ## Download
 [<img src="https://i.ibb.co/q0mdc4Z/get-it-on-github.png"
@@ -37,15 +37,15 @@ If you like to appreciate my work, please consider donating to me (either via [P
 
     Copyright (C) 2020-2021 sunilpaulmathew <sunil.kde@gmail.com>
 
-    Simple Terminal is a free softwares: you can redistribute it and/or
+    sTerminal is a free softwares: you can redistribute it and/or
     modify it under the terms of the GNU General Public License as published
     by the Free Software Foundation, either version 3 of the License, or (at
     your option) any later version.
 
-    Simple Terminal is distributed in the hope that it will be useful, but
+    sTerminal is distributed in the hope that it will be useful, but
     WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
     or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
     for more details.
 
     You should have received a copy of the GNU General Public License along
-    with Simple Terminal. If not, see <http://www.gnu.org/licenses/>.
+    with sTerminal. If not, see <http://www.gnu.org/licenses/>.
