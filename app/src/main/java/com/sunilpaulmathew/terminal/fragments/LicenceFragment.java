@@ -1,10 +1,13 @@
 package com.sunilpaulmathew.terminal.fragments;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,12 +19,16 @@ import androidx.fragment.app.Fragment;
 
 public class LicenceFragment extends Fragment {
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        WebView webView = new WebView(getActivity());
-        webView.loadUrl("file:///android_asset/gpl.html");
+        WebView webView = new WebView(requireActivity());
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webView.loadUrl("https://www.gnu.org/licenses/gpl-3.0-standalone.html");
+        webView.setWebViewClient(new WebViewClient());
 
         return webView;
     }
