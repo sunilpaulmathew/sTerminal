@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.provider.Settings;
 import android.view.View;
@@ -96,12 +97,22 @@ public class Utils {
         activity.finish();
     }
 
-    public static void launchUrl(String url, Context context) {
-        try {
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-            context.startActivity(i);
-        } catch (ActivityNotFoundException ignored) {
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert cm != null;
+        return (cm.getActiveNetworkInfo() != null) && cm.getActiveNetworkInfo().isConnectedOrConnecting();
+    }
+
+    public static void launchUrl(String url, Activity activity) {
+        if (isNetworkAvailable(activity)) {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                activity.startActivity(i);
+            } catch (ActivityNotFoundException ignored) {
+            }
+        } else {
+            showSnackbar(activity.findViewById(android.R.id.content), activity.getString(R.string.network_unavailable));
         }
     }
 

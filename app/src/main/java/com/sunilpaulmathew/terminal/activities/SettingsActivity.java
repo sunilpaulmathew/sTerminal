@@ -68,6 +68,10 @@ public class SettingsActivity extends AppCompatActivity {
             } else if (position == 1) {
                 Utils.launchUrl("https://github.com/sunilpaulmathew/sTerminal/", this);
             } else if (position == 2) {
+                if (!Utils.isNetworkAvailable(this)) {
+                    Utils.showSnackbar(findViewById(android.R.id.content), getString(R.string.network_unavailable));
+                    return;
+                }
                 Intent manual = new Intent(this, ManualActivity.class);
                 startActivity(manual);
             } else if (position == 3) {
@@ -83,6 +87,10 @@ public class SettingsActivity extends AppCompatActivity {
             } else if (position == 5) {
                 Utils.launchUrl("https://github.com/sunilpaulmathew/sTerminal/blob/main/app/src/main/res/values/strings.xml", this);
             } else if (position == 6) {
+                if (!Utils.isNetworkAvailable(this)) {
+                    Utils.showSnackbar(findViewById(android.R.id.content), getString(R.string.network_unavailable));
+                    return;
+                }
                 Intent licence = new Intent(this, LicenceActivity.class);
                 startActivity(licence);
             } else if (position == 7) {

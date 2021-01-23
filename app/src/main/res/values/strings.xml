@@ -15,6 +15,7 @@
     <string name="licence_summary">Read more about GPL v3</string>
     <string name="manual">Online Manual</string>
     <string name="manual_summary">Checkout Linux command-line manual</string>
+    <string name="network_unavailable">Failed to connect to the internet!</string>
     <string name="press_back">Press back again to exit</string>
     <string name="root_status_available">Congrats! Root Access is already available for this app!</string>
     <string name="root_status_unavailable">Unfortunately, Root Access is either unavailable on your device or denied to this app. Please check with you\'re root management application to know more!</string>
