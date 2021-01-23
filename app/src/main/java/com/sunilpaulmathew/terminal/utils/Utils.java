@@ -1,10 +1,12 @@
 package com.sunilpaulmathew.terminal.utils;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.provider.Settings;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatDelegate;
@@ -72,7 +74,7 @@ public class Utils {
         mProcess.destroy();
     }
 
-    private static boolean isDarkTheme(Context context) {
+    public static boolean isDarkTheme(Context context) {
         int currentNightMode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         return currentNightMode == Configuration.UI_MODE_NIGHT_YES;
     }
@@ -83,6 +85,15 @@ public class Utils {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         }
+    }
+
+    public static void goToSettings(Activity activity) {
+        Intent settings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        settings.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Uri uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null);
+        settings.setData(uri);
+        activity.startActivity(settings);
+        activity.finish();
     }
 
     public static void launchUrl(String url, Context context) {

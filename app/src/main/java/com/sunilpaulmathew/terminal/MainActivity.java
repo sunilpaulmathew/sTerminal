@@ -2,18 +2,14 @@ package com.sunilpaulmathew.terminal;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
-import com.sunilpaulmathew.terminal.activities.AboutActivity;
-import com.sunilpaulmathew.terminal.activities.LicenceActivity;
-import com.sunilpaulmathew.terminal.activities.ManualActivity;
+import com.sunilpaulmathew.terminal.activities.SettingsActivity;
 import com.sunilpaulmathew.terminal.adapters.PagerAdapter;
 import com.sunilpaulmathew.terminal.fragments.TerminalFragment;
 import com.sunilpaulmathew.terminal.utils.Utils;
@@ -39,33 +35,8 @@ public class MainActivity extends AppCompatActivity {
         ViewPager mViewPager = findViewById(R.id.view_pager);
 
         mMenu.setOnClickListener(v -> {
-            PopupMenu popupMenu = new PopupMenu(this, mMenu);
-            Menu menu = popupMenu.getMenu();
-            menu.add(Menu.NONE, 0, Menu.NONE, R.string.manual);
-            menu.add(Menu.NONE, 1, Menu.NONE, R.string.source_code);
-            menu.add(Menu.NONE, 2, Menu.NONE, R.string.licence);
-            menu.add(Menu.NONE, 3, Menu.NONE, R.string.about);
-            popupMenu.setOnMenuItemClickListener(item -> {
-                switch (item.getItemId()) {
-                    case 0:
-                        Intent manual = new Intent(this, ManualActivity.class);
-                        startActivity(manual);
-                        break;
-                    case 1:
-                        Utils.launchUrl("https://github.com/sunilpaulmathew/SimpleTerminal", this);
-                        break;
-                    case 2:
-                        Intent licence = new Intent(this, LicenceActivity.class);
-                        startActivity(licence);
-                        break;
-                    case 3:
-                        Intent about = new Intent(this, AboutActivity.class);
-                        startActivity(about);
-                        break;
-                }
-                return false;
-            });
-            popupMenu.show();
+            Intent manual = new Intent(this, SettingsActivity.class);
+            startActivity(manual);
         });
 
         PagerAdapter adapter = new PagerAdapter(getSupportFragmentManager());

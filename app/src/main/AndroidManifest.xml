@@ -22,5 +22,6 @@
         <activity android:name=".activities.AboutActivity" />
         <activity android:name=".activities.LicenceActivity" />
         <activity android:name=".activities.ManualActivity" />
+        <activity android:name=".activities.SettingsActivity" />
     </application>
 </manifest>
