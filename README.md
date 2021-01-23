@@ -18,17 +18,20 @@
 * A simple, lightweight, and elegant UI to execute bash commands.
 
 ## Donations
-If you like to appreciate my work, please consider donating to me (either via [PayPal](https://www.paypal.me/menacherry/), or [Ko-fi](https://ko-fi.com/sunilpaulmathew/), or by purchasing the [SmartPack Donation Package](https://play.google.com/store/apps/details?id=com.smartpack.donate) from playstore) as it is helpful to continue my projects more active, although it is not at all necessary.
+If you like to appreciate my work, please consider donating to me (either via [Liberapay](https://liberapay.com/sunilpaulmathew/donate), [PayPal](https://www.paypal.me/menacherry/), [Ko-fi](https://ko-fi.com/sunilpaulmathew/), or by purchasing the [SmartPack Donation Package](https://play.google.com/store/apps/details?id=com.smartpack.donate) from playstore) as it is helpful to continue my projects more active, although it is not at all necessary.
 
+[<img src="https://liberapay.com/assets/widgets/donate.svg"
+     alt=""
+     height="80">](https://liberapay.com/sunilpaulmathew/donate/)
 [<img src="https://raw.githubusercontent.com/SmartPack/SmartPack.github.io/master/asset/pic005.png"
      alt=""
      height="80">](https://www.paypal.me/menacherry/)
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
-     alt=""
-     height="80">](https://play.google.com/store/apps/details?id=com.smartpack.donate)
 [<img src="https://raw.githubusercontent.com/SmartPack/SmartPack.github.io/master/asset/pic010.png"
      alt=""
      height="80">](https://ko-fi.com/sunilpaulmathew/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt=""
+     height="80">](https://play.google.com/store/apps/details?id=com.smartpack.donate)
 
 ## Credits
 * [topjohnwu](https://github.com/topjohnwu), libsu
