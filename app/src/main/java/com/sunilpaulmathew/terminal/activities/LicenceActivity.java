@@ -4,9 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageButton;
 
-import com.google.android.material.textview.MaterialTextView;
 import com.sunilpaulmathew.terminal.R;
 import com.sunilpaulmathew.terminal.fragments.LicenceFragment;
 
@@ -21,14 +19,8 @@ public class LicenceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_layout);
 
-        AppCompatImageButton mBack = findViewById(R.id.back);
-        MaterialTextView mCancel = findViewById(R.id.cancel_button);
-        mCancel.setOnClickListener(v -> onBackPressed());
-
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                 new LicenceFragment()).commit();
-
-        mBack.setOnClickListener(v -> onBackPressed());
     }
 
 }
