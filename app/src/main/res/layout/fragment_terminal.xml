@@ -52,11 +52,11 @@
                         android:gravity="start"
                         android:textSize="17sp" />
 
-                    <androidx.appcompat.widget.AppCompatEditText
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
                         android:id="@+id/shell_command"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:inputType="textMultiLine"
                         android:layout_gravity="start|center"
                         android:textColor="@color/colorWhite"
                         android:gravity="center_vertical"

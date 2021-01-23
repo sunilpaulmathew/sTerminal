@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.widget.NestedScrollView;
@@ -37,7 +37,7 @@ import java.util.List;
 
 public class TerminalFragment extends Fragment {
 
-    private AppCompatEditText mShellCommand;
+    private AppCompatAutoCompleteTextView mShellCommand;
     private AppCompatImageButton mUpButtom;
     private boolean mExit, mRunning = false, mSU = false;
     private CharSequence mHistory = null;
