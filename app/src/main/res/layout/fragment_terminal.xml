@@ -17,10 +17,17 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" >
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/shell_output"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginTop="10dp"
+                android:visibility="gone"
+                android:textStyle="bold"
+                android:textSize="15sp" />
 
             <FrameLayout
                 android:layout_width="match_parent"

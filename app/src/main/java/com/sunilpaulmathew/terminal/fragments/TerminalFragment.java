@@ -20,17 +20,15 @@ import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textview.MaterialTextView;
 import com.sunilpaulmathew.terminal.R;
-import com.sunilpaulmathew.terminal.adapters.RecycleViewAdapter;
 import com.sunilpaulmathew.terminal.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 /*
@@ -42,12 +40,12 @@ public class TerminalFragment extends Fragment {
     private AppCompatEditText mShellCommand;
     private AppCompatImageButton mUpButtom;
     private boolean mExit, mRunning = false, mSU = false;
+    private CharSequence mHistory = null;
     private Handler mHandler = new Handler();
-    private MaterialTextView mShellCommandTitle;
+    private MaterialTextView mShellCommandTitle, mShellOutput;
     private int i;
-    private List<String> mHistory = new ArrayList<>(), mLastCommand = null, PWD = null, mResult, whoAmI = null;
+    private List<String> mLastCommand = null, PWD = null, mResult, whoAmI = null;
     private NestedScrollView mScrollView;
-    private RecyclerView mRecyclerView;
     private String mCommand;
 
     @Nullable
@@ -58,8 +56,8 @@ public class TerminalFragment extends Fragment {
         mUpButtom = mRootView.findViewById(R.id.up_button);
         mShellCommand = mRootView.findViewById(R.id.shell_command);
         mShellCommandTitle = mRootView.findViewById(R.id.shell_command_title);
+        mShellOutput = mRootView.findViewById(R.id.shell_output);
         mScrollView = mRootView.findViewById(R.id.scroll_view);
-        mRecyclerView = mRootView.findViewById(R.id.recycler_view);
 
         mShellCommand.addTextChangedListener(new TextWatcher() {
             @Override
@@ -138,13 +136,6 @@ public class TerminalFragment extends Fragment {
         return mRootView;
     }
 
-    private List<String> getData() {
-        List<String> mData = new ArrayList<>();
-        mData.addAll(mHistory);
-        mData.addAll(mResult);
-        return mData;
-    }
-
     public void refreshStatus(Activity activity) {
         new Thread() {
             @SuppressLint("SetTextI18n")
@@ -155,6 +146,7 @@ public class TerminalFragment extends Fragment {
                         Thread.sleep(1000);
                         activity.runOnUiThread(() -> {
                             if (mRunning) {
+                                mShellOutput.setTextIsSelectable(false);
                                 mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
                                 if (!mCommand.startsWith("sleep") && mResult.isEmpty()) {
                                     if (mSU) {
@@ -162,13 +154,14 @@ public class TerminalFragment extends Fragment {
                                     } else {
                                         Utils.destroyProcess();
                                     }
+                                } else {
+                                    try {
+                                        mShellOutput.setText(Utils.getOutput(mResult));
+                                    } catch (ConcurrentModificationException | NullPointerException ignored) {}
                                 }
+                            } else {
+                                mShellOutput.setTextIsSelectable(true);
                             }
-                            try {
-                                RecycleViewAdapter mRecycleViewAdapter = new RecycleViewAdapter(getData());
-                                mRecyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
-                                mRecyclerView.setAdapter(mRecycleViewAdapter);
-                            } catch (NullPointerException | IllegalStateException ignored) {}
                         });
                     }
                 } catch (InterruptedException ignored) {}
@@ -246,13 +239,12 @@ public class TerminalFragment extends Fragment {
             protected void onPreExecute() {
                 super.onPreExecute();
                 mRunning = true;
-                try {
-                    mHistory.addAll(mResult);
-                } catch (NullPointerException ignored) {}
+                mHistory = mShellOutput.getText();
                 requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
                 mResult = new ArrayList<>();
                 PWD = new ArrayList<>();
                 mShellCommand.setText(null);
+                mShellOutput.setVisibility(View.VISIBLE);
             }
             @SuppressLint("WrongThread")
             @Override
@@ -272,7 +264,13 @@ public class TerminalFragment extends Fragment {
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
+                if (mHistory != null && !mHistory.toString().isEmpty()) {
+                    mShellOutput.setText(mHistory + "\n\n" + Utils.getOutput(mResult));
+                } else {
+                    mShellOutput.setText(Utils.getOutput(mResult));
+                }
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
+                mHistory = null;
                 mRunning = false;
                 requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 if (mLastCommand.size() > 0) {
@@ -283,7 +281,8 @@ public class TerminalFragment extends Fragment {
     }
 
     private void clearAll() {
-        mHistory.clear();
+        mShellOutput.setText(null);
+        mShellOutput.setVisibility(View.GONE);
         mResult.clear();
         mShellCommand.setText(null);
     }
