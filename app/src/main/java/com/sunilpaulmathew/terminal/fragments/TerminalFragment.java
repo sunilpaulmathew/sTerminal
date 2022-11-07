@@ -3,9 +3,9 @@ package com.sunilpaulmathew.terminal.fragments;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on January 05, 2021
@@ -41,13 +43,14 @@ public class TerminalFragment extends Fragment {
     private AppCompatImageButton mUpButtom;
     private boolean mExit, mRunning = false, mSU = false;
     private CharSequence mHistory = null;
-    private Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
     private MaterialTextView mShellCommandTitle, mShellOutput;
     private int i;
     private List<String> mLastCommand = null, PWD = null, mResult, whoAmI = null;
     private NestedScrollView mScrollView;
     private String mCommand;
 
+    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -58,6 +61,15 @@ public class TerminalFragment extends Fragment {
         mShellCommandTitle = mRootView.findViewById(R.id.shell_command_title);
         mShellOutput = mRootView.findViewById(R.id.shell_output);
         mScrollView = mRootView.findViewById(R.id.scroll_view);
+
+        mShellCommand.requestFocus();
+        mLastCommand = new ArrayList<>();
+        whoAmI = new ArrayList<>();
+        PWD = new ArrayList<>();
+        requireActivity().getExternalFilesDir("home").mkdirs();
+        whoAmI = Utils.runCommand("whoami");
+        PWD = Utils.runCommand("pwd");
+        mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
 
         mShellCommand.addTextChangedListener(new TextWatcher() {
             @Override
@@ -93,6 +105,7 @@ public class TerminalFragment extends Fragment {
                 for (i = 0; i < mRecentCommands.size(); i++) {
                     if (item.getItemId() == i) {
                         mShellCommand.setText(mRecentCommands.get(i));
+                        mShellCommand.setSelection(mShellCommand.getText().length());
                     }
                 }
                 return false;
@@ -100,13 +113,16 @@ public class TerminalFragment extends Fragment {
             popupMenu.show();
         });
 
-        refreshStatus(requireActivity());
+        Thread mRefreshThread = new RefreshThread();
+        mRefreshThread.start();
 
         requireActivity().getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (mRunning) {
                     new MaterialAlertDialogBuilder(requireActivity())
+                            .setIcon(R.mipmap.ic_launcher)
+                            .setTitle(R.string.app_name)
                             .setMessage(getString(R.string.stop_command_question, mCommand))
                             .setNegativeButton(getString(R.string.cancel), (dialog1, id1) -> {
                             })
@@ -136,37 +152,34 @@ public class TerminalFragment extends Fragment {
         return mRootView;
     }
 
-    public void refreshStatus(Activity activity) {
-        new Thread() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void run() {
-                try {
-                    while (!isInterrupted()) {
-                        Thread.sleep(1000);
-                        activity.runOnUiThread(() -> {
-                            if (mRunning) {
-                                mShellOutput.setTextIsSelectable(false);
-                                mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
-                                if (!mCommand.startsWith("sleep") && mResult.isEmpty()) {
-                                    if (mSU) {
-                                        Utils.closeSU();
-                                    } else {
-                                        Utils.destroyProcess();
-                                    }
+    private class RefreshThread extends Thread {
+        @Override
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+                    Thread.sleep(250);
+                    requireActivity().runOnUiThread(() -> {
+                        if (mRunning) {
+                            mShellOutput.setTextIsSelectable(false);
+                            mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
+                            if (!mCommand.startsWith("sleep") && mResult.isEmpty()) {
+                                if (mSU) {
+                                    Utils.closeSU();
                                 } else {
-                                    try {
-                                        mShellOutput.setText(Utils.getOutput(mResult));
-                                    } catch (ConcurrentModificationException | NullPointerException ignored) {}
+                                    Utils.destroyProcess();
                                 }
                             } else {
-                                mShellOutput.setTextIsSelectable(true);
+                                try {
+                                    mShellOutput.setText(Utils.getOutput(mResult));
+                                } catch (ConcurrentModificationException | NullPointerException ignored) {}
                             }
-                        });
-                    }
-                } catch (InterruptedException ignored) {}
-            }
-        }.start();
+                        } else {
+                            mShellOutput.setTextIsSelectable(true);
+                        }
+                    });
+                }
+            } catch (InterruptedException ignored) {}
+        }
     }
 
     @SuppressLint({"SetTextI18n", "StaticFieldLeak"})
@@ -191,18 +204,18 @@ public class TerminalFragment extends Fragment {
                 if (mSU) {
                     mSU = false;
                     whoAmI = new ArrayList<>();
-                    Utils.runCommand("whoami", whoAmI);
+                    whoAmI = Utils.runCommand("whoami");
                     mShellCommand.setText(null);
                     mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 } else {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
+                            .setIcon(R.mipmap.ic_launcher)
+                            .setTitle(R.string.app_name)
                             .setMessage(R.string.exit_confirmation)
                             .setNegativeButton(R.string.cancel, (dialog, which) -> {
                             })
-                            .setPositiveButton(R.string.exit, (dialog, which) -> {
-                                activity.onBackPressed();
-                            })
+                            .setPositiveButton(R.string.exit, (dialog, which) -> activity.onBackPressed())
                             .show();
                 }
                 return;
@@ -211,6 +224,8 @@ public class TerminalFragment extends Fragment {
                 if (mSU && Utils.rootAccess()) {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
+                            .setIcon(R.mipmap.ic_launcher)
+                            .setTitle(R.string.app_name)
                             .setMessage(R.string.root_status_available)
                             .setPositiveButton(R.string.cancel, (dialog, which) -> {
                             })
@@ -220,12 +235,14 @@ public class TerminalFragment extends Fragment {
                     mSU = true;
                     mShellCommand.setText(null);
                     whoAmI = new ArrayList<>();
-                    Utils.runRootCommand("whoami", whoAmI);
+                    whoAmI = Utils.runRootCommand("whoami");
                     mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                     return;
                 } else {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
+                            .setIcon(R.mipmap.ic_launcher)
+                            .setTitle(R.string.app_name)
                             .setMessage(R.string.root_status_unavailable)
                             .setPositiveButton(R.string.cancel, (dialog, which) -> {
                             })
@@ -234,40 +251,35 @@ public class TerminalFragment extends Fragment {
                 }
             }
         }
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                mRunning = true;
-                mHistory = mShellOutput.getText();
-                requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-                mResult = new ArrayList<>();
-                PWD = new ArrayList<>();
-                mShellCommand.setText(null);
-                mShellOutput.setVisibility(View.VISIBLE);
-            }
-            @SuppressLint("WrongThread")
-            @Override
-            protected Void doInBackground(Void... voids) {
-                if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
-                    mResult.add(whoAmI + ": " + mCommand);
-                    if (mSU) {
-                        Utils.runRootCommand(mCommand, mResult);
-                        Utils.runRootCommand("pwd", PWD);
-                    } else {
-                        Utils.runCommand(mCommand, mResult);
-                        Utils.runCommand("pwd", PWD);
-                    }
-                }
-                return null;
-            }
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-                if (mHistory != null && !mHistory.toString().isEmpty()) {
-                    mShellOutput.setText(mHistory + "\n\n" + Utils.getOutput(mResult));
+
+        mRunning = true;
+        mHistory = mShellOutput.getText();
+        requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        mResult = new ArrayList<>();
+        PWD = new ArrayList<>();
+        mShellCommand.setText(null);
+        mShellOutput.setVisibility(View.VISIBLE);
+
+        ExecutorService mExecutors = Executors.newSingleThreadExecutor();
+        mExecutors.execute(() -> {
+            if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
+                mResult.add(whoAmI + ": " + mCommand);
+                if (mSU) {
+                    mResult = Utils.runRootCommand(mCommand);
+                    PWD = Utils.runRootCommand("pwd");
                 } else {
-                    mShellOutput.setText(Utils.getOutput(mResult));
+                    mResult = Utils.runCommand(mCommand);
+                    PWD = Utils.runCommand("pwd");
+                }
+            }
+
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (mResult != null) {
+                    if (mHistory != null && !mHistory.toString().isEmpty()) {
+                        mShellOutput.setText(mHistory + "\n\n" + Utils.getOutput(mResult));
+                    } else {
+                        mShellOutput.setText(Utils.getOutput(mResult));
+                    }
                 }
                 mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 mHistory = null;
@@ -276,8 +288,9 @@ public class TerminalFragment extends Fragment {
                 if (mLastCommand.size() > 0) {
                     mUpButtom.setVisibility(View.VISIBLE);
                 }
-            }
-        }.execute();
+            });
+            if (!mExecutors.isShutdown()) mExecutors.shutdown();
+        });
     }
 
     private void clearAll() {
@@ -285,20 +298,6 @@ public class TerminalFragment extends Fragment {
         mShellOutput.setVisibility(View.GONE);
         mResult.clear();
         mShellCommand.setText(null);
-    }
-
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        mShellCommand.requestFocus();
-        mLastCommand = new ArrayList<>();
-        whoAmI = new ArrayList<>();
-        PWD = new ArrayList<>();
-        Utils.runCommand("whoami", whoAmI);
-        Utils.runCommand("pwd", PWD);
-        mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
     }
 
 }

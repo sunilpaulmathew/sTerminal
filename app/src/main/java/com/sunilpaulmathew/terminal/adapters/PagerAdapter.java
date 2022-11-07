@@ -18,7 +18,7 @@ public class PagerAdapter extends FragmentPagerAdapter {
     private final List<String> fragmentListTitles = new ArrayList<>();
 
     public PagerAdapter(FragmentManager fm) {
-        super(fm);
+        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
     }
 
     @NonNull
@@ -33,12 +33,17 @@ public class PagerAdapter extends FragmentPagerAdapter {
     }
 
     @Override
+    public int getItemPosition(@NonNull Object object) {
+        return POSITION_NONE;
+    }
+
+    @Override
     public CharSequence getPageTitle(int position) {
         return fragmentListTitles.get(position);
     }
-
     public void AddFragment(Fragment fragment, String title) {
         fragmentList.add(fragment);
         fragmentListTitles.add(title);
     }
+
 }

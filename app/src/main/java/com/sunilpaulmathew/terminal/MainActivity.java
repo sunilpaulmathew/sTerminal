@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         mTabLayout.setupWithViewPager(mViewPager);
 
         mAdd.setOnClickListener(v -> {
-            i = ++i;
+            ++i;
             if (i > 1 && mTabLayout.getVisibility() == View.GONE) {
                 mTabLayout.setVisibility(View.VISIBLE);
             }

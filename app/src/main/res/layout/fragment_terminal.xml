@@ -58,7 +58,6 @@
                         android:layout_height="wrap_content"
                         android:inputType="textMultiLine"
                         android:layout_gravity="start|center"
-                        android:textColor="@color/colorWhite"
                         android:gravity="center_vertical"
                         android:cursorVisible="true" />
                 </LinearLayout>
