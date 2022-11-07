@@ -34,8 +34,7 @@ public class Utils {
     private static Process mProcess;
 
     static {
-        Shell.Config.verboseLogging(BuildConfig.DEBUG);
-        Shell.Config.setTimeout(10);
+        Shell.enableVerboseLogging = BuildConfig.DEBUG;
     }
 
     public static void runCommand(String command, List<String> output) {
