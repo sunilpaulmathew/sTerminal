@@ -13,6 +13,7 @@ import com.sunilpaulmathew.terminal.activities.SettingsActivity;
 import com.sunilpaulmathew.terminal.adapters.PagerAdapter;
 import com.sunilpaulmathew.terminal.fragments.TerminalFragment;
 import com.sunilpaulmathew.terminal.utils.Utils;
+import com.topjohnwu.superuser.Shell;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on September 25, 2020
@@ -21,6 +22,10 @@ import com.sunilpaulmathew.terminal.utils.Utils;
 public class MainActivity extends AppCompatActivity {
 
     private int i = 1;
+
+    static {
+        Shell.enableVerboseLogging = BuildConfig.DEBUG;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -13,6 +13,7 @@
     <string name="invite_friends">Invite Friends</string>
     <string name="licence">Licence</string>
     <string name="licence_summary">Read more about GPL v3</string>
+    <string name="logcat_permission_message">The acquiring of logcat will work much better if you grant \'android.permission.READ_LOGS\' to sTerminal. Please send the following command from an ADB shell to grant the permission.\n\nadb shell pm grant com.sunilpaulmathew.terminal android.permission.READ_LOGS</string>
     <string name="manual">Online Manual</string>
     <string name="manual_summary">Checkout Linux command-line manual</string>
     <string name="press_back">Press back again to exit</string>

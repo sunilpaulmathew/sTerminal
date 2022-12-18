@@ -1,8 +1,9 @@
 package com.sunilpaulmathew.terminal.fragments;
 
-import android.annotation.SuppressLint;
+import android.Manifest;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,20 +19,28 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.textview.MaterialTextView;
 import com.sunilpaulmathew.terminal.R;
+import com.sunilpaulmathew.terminal.adapters.ShellOutputAdapter;
 import com.sunilpaulmathew.terminal.utils.Utils;
+import com.sunilpaulmathew.terminal.utils.sShell;
+import com.topjohnwu.superuser.Shell;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on January 05, 2021
@@ -41,16 +50,15 @@ public class TerminalFragment extends Fragment {
 
     private AppCompatAutoCompleteTextView mShellCommand;
     private AppCompatImageButton mUpButtom;
-    private boolean mExit, mRunning = false, mSU = false;
-    private CharSequence mHistory = null;
+    private boolean mExit, mSU = false;
     private final Handler mHandler = new Handler();
-    private MaterialTextView mShellCommandTitle, mShellOutput;
     private int i;
-    private List<String> mLastCommand = null, PWD = null, mResult, whoAmI = null;
-    private NestedScrollView mScrollView;
-    private String mCommand;
+    private List<String> mLastCommand = null, mResult;
+    private RecyclerView mRecyclerView;
+    private sShell mShell = null;
+    private ShellOutputAdapter mShellOutputAdapter = null;
+    private String mCommand, mUser = null;
 
-    @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -58,18 +66,21 @@ public class TerminalFragment extends Fragment {
 
         mUpButtom = mRootView.findViewById(R.id.up_button);
         mShellCommand = mRootView.findViewById(R.id.shell_command);
-        mShellCommandTitle = mRootView.findViewById(R.id.shell_command_title);
-        mShellOutput = mRootView.findViewById(R.id.shell_output);
-        mScrollView = mRootView.findViewById(R.id.scroll_view);
+        MaterialCardView mSendButton = mRootView.findViewById(R.id.send_button);
 
         mShellCommand.requestFocus();
+
+        mRecyclerView = mRootView.findViewById(R.id.recycler_view);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
+
+        mShell = new sShell(mResult, null);
+        File mHome = requireActivity().getExternalFilesDir("home");
+        if (!mHome.exists()) {
+            mHome.mkdirs();
+        }
+        mUser = mShell.getUserName();
+
         mLastCommand = new ArrayList<>();
-        whoAmI = new ArrayList<>();
-        PWD = new ArrayList<>();
-        requireActivity().getExternalFilesDir("home").mkdirs();
-        whoAmI = Utils.runCommand("whoami");
-        PWD = Utils.runCommand("pwd");
-        mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
 
         mShellCommand.addTextChangedListener(new TextWatcher() {
             @Override
@@ -80,37 +91,52 @@ public class TerminalFragment extends Fragment {
             }
             @Override
             public void afterTextChanged(Editable s) {
-                if (mRunning) return;
-                if (s.toString().contains("\n")) {
-                    runShellCommand(requireActivity());
+                if (s.toString().trim().isEmpty()) {
+                    if (mLastCommand.size() > 0) {
+                        mUpButtom.setImageDrawable(Utils.getDrawable(R.drawable.ic_arrow_up, requireActivity()));
+                    }
+                } else {
+                    mUpButtom.setImageDrawable(Utils.getDrawable(R.drawable.ic_send, requireActivity()));
+                    if (s.toString().contains("\n")) {
+                        if (!s.toString().endsWith("\n")) {
+                            mShellCommand.setText(s.toString().replace("\n", ""));
+                        }
+                        runShellCommand(requireActivity());
+                    }
                 }
             }
         });
 
-        mUpButtom.setOnClickListener(v -> {
-            List<String> mRecentCommands = new ArrayList<>();
-            for (i = 0; i < mLastCommand.size(); i++) {
-                mRecentCommands.add(mLastCommand.get(i));
-            }
-            Collections.reverse(mRecentCommands);
-            PopupMenu popupMenu = new PopupMenu(requireContext(), mShellCommand);
-            Menu menu = popupMenu.getMenu();
-            if (mLastCommand.size() == 0) {
-                return;
-            }
-            for (i = 0; i < mRecentCommands.size(); i++) {
-                menu.add(Menu.NONE, i, Menu.NONE, mRecentCommands.get(i));
-            }
-            popupMenu.setOnMenuItemClickListener(item -> {
-                for (i = 0; i < mRecentCommands.size(); i++) {
-                    if (item.getItemId() == i) {
-                        mShellCommand.setText(mRecentCommands.get(i));
-                        mShellCommand.setSelection(mShellCommand.getText().length());
-                    }
+        mSendButton.setOnClickListener(v -> {
+            if (mResult != null && mResult.size() > 0 && !mResult.get(mResult.size() - 1).equals("sTerminal: Finish")) {
+                mShell.destroy();
+            } else if (mShellCommand.getText() != null && !mShellCommand.getText().toString().isEmpty()) {
+                runShellCommand(requireActivity());
+            } else if (mLastCommand.size() > 0) {
+                List<String> mRecentCommands = new ArrayList<>();
+                for (i = 0; i < mLastCommand.size(); i++) {
+                    mRecentCommands.add(mLastCommand.get(i));
                 }
-                return false;
-            });
-            popupMenu.show();
+                Collections.reverse(mRecentCommands);
+                PopupMenu popupMenu = new PopupMenu(requireContext(), mShellCommand);
+                Menu menu = popupMenu.getMenu();
+                if (mLastCommand.size() == 0) {
+                    return;
+                }
+                for (i = 0; i < mRecentCommands.size(); i++) {
+                    menu.add(Menu.NONE, i, Menu.NONE, mRecentCommands.get(i));
+                }
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    for (i = 0; i < mRecentCommands.size(); i++) {
+                        if (item.getItemId() == i) {
+                            mShellCommand.setText(mRecentCommands.get(i));
+                            mShellCommand.setSelection(mShellCommand.getText().length());
+                        }
+                    }
+                    return false;
+                });
+                popupMenu.show();
+            }
         });
 
         Thread mRefreshThread = new RefreshThread();
@@ -119,7 +145,7 @@ public class TerminalFragment extends Fragment {
         requireActivity().getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (mRunning) {
+                if (mResult != null && mResult.size() > 0 && !mResult.get(mResult.size() - 1).equals("sTerminal: Finish")) {
                     new MaterialAlertDialogBuilder(requireActivity())
                             .setIcon(R.mipmap.ic_launcher)
                             .setTitle(R.string.app_name)
@@ -128,9 +154,12 @@ public class TerminalFragment extends Fragment {
                             })
                             .setPositiveButton(getString(R.string.exit), (dialog1, id1) -> {
                                 if (mSU) {
-                                    Utils.closeSU();
+                                    try {
+                                        Objects.requireNonNull(Shell.getCachedShell()).close();
+                                    } catch (IOException ignored) {
+                                    }
                                 } else {
-                                    Utils.destroyProcess();
+                                    mShell.destroy();
                                 }
                                 this.remove();
                                 requireActivity().onBackPressed();
@@ -159,30 +188,18 @@ public class TerminalFragment extends Fragment {
                 while (!isInterrupted()) {
                     Thread.sleep(250);
                     requireActivity().runOnUiThread(() -> {
-                        if (mRunning) {
-                            mShellOutput.setTextIsSelectable(false);
-                            mScrollView.fullScroll(NestedScrollView.FOCUS_DOWN);
-                            if (!mCommand.startsWith("sleep") && mResult.isEmpty()) {
-                                if (mSU) {
-                                    Utils.closeSU();
-                                } else {
-                                    Utils.destroyProcess();
-                                }
-                            } else {
-                                try {
-                                    mShellOutput.setText(Utils.getOutput(mResult));
-                                } catch (ConcurrentModificationException | NullPointerException ignored) {}
+                        if (mResult != null && mResult.size() > 0 && !mResult.get(mResult.size() - 1).equals("sTerminal: Finish")) {
+                            try {
+                                updateUI(mResult);
+                            } catch (ConcurrentModificationException ignored) {
                             }
-                        } else {
-                            mShellOutput.setTextIsSelectable(true);
                         }
                     });
                 }
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException | IllegalStateException ignored) {}
         }
     }
 
-    @SuppressLint({"SetTextI18n", "StaticFieldLeak"})
     private void runShellCommand(Activity activity) {
         if (mShellCommand.getText() == null || mShellCommand.getText().toString().isEmpty()) {
             return;
@@ -203,10 +220,7 @@ public class TerminalFragment extends Fragment {
             if (mCommand.equals("exit")) {
                 if (mSU) {
                     mSU = false;
-                    whoAmI = new ArrayList<>();
-                    whoAmI = Utils.runCommand("whoami");
                     mShellCommand.setText(null);
-                    mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                 } else {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
@@ -220,8 +234,18 @@ public class TerminalFragment extends Fragment {
                 }
                 return;
             }
+            if (mCommand.startsWith("logcat") && !Shell.rootAccess() && activity.checkCallingOrSelfPermission(
+                    Manifest.permission.READ_LOGS) != PackageManager.PERMISSION_GRANTED) {
+                new MaterialAlertDialogBuilder(activity)
+                        .setIcon(R.mipmap.ic_launcher)
+                        .setTitle(R.string.app_name)
+                        .setMessage(R.string.logcat_permission_message)
+                        .setPositiveButton(R.string.cancel, (dialog, which) -> {
+                        })
+                        .show();
+            }
             if (mCommand.equals("su") || mCommand.startsWith("su ")) {
-                if (mSU && Utils.rootAccess()) {
+                if (mSU && Shell.rootAccess()) {
                     mShellCommand.setText(null);
                     new MaterialAlertDialogBuilder(activity)
                             .setIcon(R.mipmap.ic_launcher)
@@ -231,12 +255,9 @@ public class TerminalFragment extends Fragment {
                             })
                             .show();
                     return;
-                } else if (Utils.rootAccess()) {
+                } else if (Shell.rootAccess()) {
                     mSU = true;
                     mShellCommand.setText(null);
-                    whoAmI = new ArrayList<>();
-                    whoAmI = Utils.runRootCommand("whoami");
-                    mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
                     return;
                 } else {
                     mShellCommand.setText(null);
@@ -252,41 +273,70 @@ public class TerminalFragment extends Fragment {
             }
         }
 
-        mRunning = true;
-        mHistory = mShellOutput.getText();
         requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-        mResult = new ArrayList<>();
-        PWD = new ArrayList<>();
+        if (mResult == null) mResult = new ArrayList<>();
         mShellCommand.setText(null);
-        mShellOutput.setVisibility(View.VISIBLE);
+        mShellCommand.clearFocus();
 
         ExecutorService mExecutors = Executors.newSingleThreadExecutor();
         mExecutors.execute(() -> {
             if (mShellCommand.getText() != null && !mCommand.isEmpty()) {
-                mResult.add(whoAmI + ": " + mCommand);
+                mResult.add(mUser + ": " + mCommand);
                 if (mSU) {
-                    mResult = Utils.runRootCommand(mCommand);
-                    PWD = Utils.runRootCommand("pwd");
+                    List<String> mError = new ArrayList<>();
+                    Shell.cmd(mCommand).to(mResult, mError).exec();
+                    for (String errorString : mError) {
+                        mResult.add("<font color=#FF0000>" + errorString + "</font>");
+                    }
                 } else {
-                    mResult = Utils.runCommand(mCommand);
-                    PWD = Utils.runCommand("pwd");
+                    mShell = new sShell(mResult, mCommand);
+                    mShell.exec();
                 }
+                mResult.add("<i></i>");
+                mResult.add("sTerminal: Finish");
             }
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(250);
+            } catch (InterruptedException ignored) {}
 
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (mResult != null) {
-                    if (mHistory != null && !mHistory.toString().isEmpty()) {
-                        mShellOutput.setText(mHistory + "\n\n" + Utils.getOutput(mResult));
-                    } else {
-                        mShellOutput.setText(Utils.getOutput(mResult));
-                    }
+                    updateUI(mResult);
                 }
-                mShellCommandTitle.setText(Utils.getOutput(whoAmI) + ": " + Utils.getOutput(PWD));
-                mHistory = null;
-                mRunning = false;
-                requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
                 if (mLastCommand.size() > 0) {
-                    mUpButtom.setVisibility(View.VISIBLE);
+                    mUpButtom.setImageDrawable(Utils.getDrawable(R.drawable.ic_arrow_up, requireActivity()));
+                    mUpButtom.setColorFilter(Utils.getColor(R.color.colorWhite, requireActivity()));
+                }
+                mShellCommand.requestFocus();
+                requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            });
+            if (!mExecutors.isShutdown()) mExecutors.shutdown();
+        });
+    }
+
+    private void updateUI(List<String> data) {
+        List<String> mData = new ArrayList<>();
+        try {
+            for (String result : data) {
+                if (!result.trim().isEmpty() && !result.equals("sTerminal: Finish")) {
+                    mData.add(result);
+                }
+            }
+        } catch (ConcurrentModificationException ignored) {
+        }
+
+        mUpButtom.setImageDrawable(Utils.getDrawable(R.drawable.ic_stop, requireActivity()));
+        mUpButtom.setColorFilter(Utils.getColor(R.color.ColorRed, requireActivity()));
+
+        ExecutorService mExecutors = Executors.newSingleThreadExecutor();
+        mExecutors.execute(() -> {
+            mShellOutputAdapter = new ShellOutputAdapter(mData);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                mRecyclerView.setAdapter(mShellOutputAdapter);
+                mRecyclerView.scrollToPosition(mData.size() - 1);
+                if (mResult != null && mRecyclerView.getVisibility() == View.GONE) {
+                    mRecyclerView.setVisibility(View.VISIBLE);
                 }
             });
             if (!mExecutors.isShutdown()) mExecutors.shutdown();
@@ -294,10 +344,9 @@ public class TerminalFragment extends Fragment {
     }
 
     private void clearAll() {
-        mShellOutput.setText(null);
-        mShellOutput.setVisibility(View.GONE);
-        mResult.clear();
+        mResult = null;
         mShellCommand.setText(null);
+        mRecyclerView.setVisibility(View.GONE);
     }
 
 }

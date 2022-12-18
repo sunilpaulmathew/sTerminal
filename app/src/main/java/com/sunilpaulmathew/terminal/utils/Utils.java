@@ -5,24 +5,22 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Settings;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.sunilpaulmathew.terminal.BuildConfig;
 import com.sunilpaulmathew.terminal.R;
-import com.topjohnwu.superuser.Shell;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /*
  * Created by sunilpaulmathew <sunil.kde@gmail.com> on September 25, 2020
@@ -30,57 +28,17 @@ import java.util.Objects;
 
 public class Utils {
 
-    private static Process mProcess;
-
-    static {
-        Shell.enableVerboseLogging = BuildConfig.DEBUG;
-    }
-
     public static boolean isDarkTheme(Context context) {
         int currentNightMode = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         return currentNightMode == Configuration.UI_MODE_NIGHT_YES;
     }
 
-    public static boolean rootAccess() {
-        return Shell.rootAccess();
+    public static int getColor(int color, Context context) {
+        return ContextCompat.getColor(context, color);
     }
 
-    public static List<String> runCommand(String command) {
-        List<String> output = new ArrayList<>();
-        try {
-            mProcess = Runtime.getRuntime().exec(command);
-            BufferedReader mInput = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
-            BufferedReader mError = new BufferedReader(new InputStreamReader(mProcess.getErrorStream()));
-            String line;
-            while ((line = mInput.readLine()) != null) {
-                output.add(line);
-            }
-            while ((line = mError.readLine()) != null) {
-                output.add(line);
-            }
-            mProcess.waitFor();
-        } catch (Exception e) {
-            output.add(e.getMessage());
-        }
-        return output;
-    }
-
-    public static List<String> runRootCommand(String command) {
-        List<String> output = new ArrayList<>();
-        Shell.su(command).to(output, output).exec();
-        return output;
-    }
-
-    public static String getOutput(List<String> output) {
-        List<String> mData = new ArrayList<>();
-        for (String line : output.toString().substring(1, output.toString().length() - 1).replace(
-                ", ","\n").replace("ui_print","").split("\\r?\\n")) {
-            if (!line.startsWith("progress")) {
-                mData.add(line);
-            }
-        }
-        return mData.toString().substring(1, mData.toString().length() - 1).replace(", ","\n")
-                .replaceAll("(?m)^[ \t]*\r?\n", "");
+    public static Drawable getDrawable(int drawable, Context context) {
+        return ContextCompat.getDrawable(context, drawable);
     }
 
     public static String readAssetFile(Context context, String file) {
@@ -105,17 +63,6 @@ public class Utils {
             }
         }
         return null;
-    }
-
-    public static void closeSU() {
-        try {
-            Objects.requireNonNull(Shell.getCachedShell()).close();
-        } catch (Exception ignored) {
-        }
-    }
-
-    public static void destroyProcess() {
-        if (mProcess != null) mProcess.destroy();
     }
 
     public static void goToSettings(Activity activity) {
