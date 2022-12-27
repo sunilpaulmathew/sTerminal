@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /*
@@ -139,8 +140,7 @@ public class TerminalFragment extends Fragment {
             }
         });
 
-        Thread mRefreshThread = new RefreshThread();
-        mRefreshThread.start();
+        refreshUI();
 
         requireActivity().getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
             @Override
@@ -181,23 +181,16 @@ public class TerminalFragment extends Fragment {
         return mRootView;
     }
 
-    private class RefreshThread extends Thread {
-        @Override
-        public void run() {
-            try {
-                while (!isInterrupted()) {
-                    Thread.sleep(250);
-                    requireActivity().runOnUiThread(() -> {
-                        if (mResult != null && mResult.size() > 0 && !mResult.get(mResult.size() - 1).equals("sTerminal: Finish")) {
-                            try {
-                                updateUI(mResult);
-                            } catch (ConcurrentModificationException ignored) {
-                            }
-                        }
-                    });
+    private void refreshUI() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(() -> {
+            if (mResult != null && mResult.size() > 0 && !mResult.get(mResult.size() - 1).equals("sTerminal: Finish")) {
+                try {
+                    updateUI(mResult);
+                } catch (ConcurrentModificationException ignored) {
                 }
-            } catch (InterruptedException | IllegalStateException ignored) {}
-        }
+            }
+        }, 0, 250, TimeUnit.MILLISECONDS);
     }
 
     private void runShellCommand(Activity activity) {
